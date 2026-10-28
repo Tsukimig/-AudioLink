@@ -63,7 +63,7 @@ jobs:
           ANDROID_VERSION: ${{ steps.version.outputs.android }}
         run: |
           $ErrorActionPreference = 'Stop'
-          $actual = [Diagnostics.FileVersionInfo]::GetVersionInfo((Join-Path $PWD 'artifacts/AudioLink/AudioLink.dll')).ProductVersion
+          $actual = [Reflection.AssemblyName]::GetAssemblyName((Join-Path $PWD 'artifacts/AudioLink/AudioLink.dll')).Version.ToString(3)
           if ($actual -ne $env:WINDOWS_VERSION) { throw 'Published application version mismatch.' }
           $releaseDir = New-Item -ItemType Directory -Path artifacts/release -Force
           $zipName = 'AudioLink-Windows-x64-' + $env:WINDOWS_VERSION + '.zip'
