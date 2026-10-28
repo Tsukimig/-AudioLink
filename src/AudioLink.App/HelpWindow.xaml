@@ -1,0 +1,23 @@
+<Window x:Class="AudioLink.HelpWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="使用说明 · 同频 AudioLink" Width="620" Height="650" ResizeMode="CanResize" MinWidth="500" MinHeight="460" WindowStartupLocation="CenterOwner" Background="#17221A" FontFamily="Segoe UI, Microsoft YaHei UI">
+  <Grid Margin="29"><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="0,0,14,0">
+      <TextBlock Text="使用说明" FontSize="23" FontWeight="SemiBold" Margin="0,0,0,20"/>
+      <TextBlock Text="1   选择系统音源" FontSize="14" Foreground="{StaticResource Accent}" FontWeight="SemiBold"/>
+      <TextBlock Text="选择正在播放声音的设备，通常为 Windows 默认输出。" TextWrapping="Wrap" Foreground="{StaticResource Secondary}" LineHeight="22" Margin="0,7,0,17"/>
+      <TextBlock Text="2   启用共享设备" FontSize="14" Foreground="{StaticResource Accent}" FontWeight="SemiBold"/>
+      <TextBlock Text="打开一个或多个设备开关，点击「开始共享」。设备滑块调整 Windows 设备音量；「共享总音量」调整程序转发的声音。" TextWrapping="Wrap" Foreground="{StaticResource Secondary}" LineHeight="22" Margin="0,7,0,17"/>
+      <TextBlock Text="安卓手机" FontSize="14" Foreground="{StaticResource Accent}" FontWeight="SemiBold"/>
+      <TextBlock Text="安装 Android 文件夹中的 APK，手机开启「USB 网络共享」。电脑点击「连接手机」，手机填写电脑地址和连接码。" TextWrapping="Wrap" Foreground="{StaticResource Secondary}" LineHeight="22" Margin="0,7,0,17"/>
+      <TextBlock Text="3   根据设备调整同步" FontSize="14" Foreground="{StaticResource Accent}" FontWeight="SemiBold"/>
+      <TextBlock Text="「同步微调」为较快设备增加 0–500 ms 延迟。播放断续时切换「均衡」或「高稳定」。" TextWrapping="Wrap" Foreground="{StaticResource Secondary}" LineHeight="22" Margin="0,7,0,17"/>
+      <TextBlock Text="音源同步" FontSize="14" Foreground="{StaticResource Accent}" FontWeight="SemiBold"/>
+      <TextBlock Text="需选择已安装的虚拟中转设备。共享期间临时切换 Windows 默认输出，停止后恢复。播放器应使用系统默认输出。" TextWrapping="Wrap" Foreground="{StaticResource Secondary}" LineHeight="22" Margin="0,7,0,17"/>
+      <TextBlock Text="清除历史" FontSize="14" Foreground="{StaticResource Accent}" FontWeight="SemiBold"/>
+      <TextBlock Text="点击「清除历史」→ 勾选断线设备 →「确认删除」。取消或按 Esc 保留记录。当前音源和中转配置需先切换后再删。" TextWrapping="Wrap" Foreground="{StaticResource Secondary}" LineHeight="22" Margin="0,7,0,17"/>
+      <TextBlock Text="快捷键" FontSize="14" FontWeight="SemiBold"/>
+      <TextBlock Text="Ctrl + Space 开始 / 停止；F5 刷新设备。" TextWrapping="Wrap" Foreground="{StaticResource Secondary}" LineHeight="22" Margin="0,7,0,17"/>
+      <TextBlock Text="无声时检查音源、设备静音和独占模式。目标延迟为软件估算值，蓝牙和硬件延迟需另外校准。" TextWrapping="Wrap" Foreground="{StaticResource Secondary}" LineHeight="21" FontSize="12"/>
+    </StackPanel></ScrollViewer>
+    <Button Grid.Row="1" Content="知道了" HorizontalAlignment="Right" Padding="25,10" Margin="0,18,0,0" Click="Close_Click"/>
+  </Grid>
+</Window>

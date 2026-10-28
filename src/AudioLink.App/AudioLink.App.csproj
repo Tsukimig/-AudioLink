@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>AudioLink</AssemblyName>
+    <RootNamespace>AudioLink</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\AudioLink.ico</ApplicationIcon>
+    <Description>同频 AudioLink — Windows 多设备音频共享</Description>
+    <Product>同频 AudioLink</Product>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AudioLink.Core\AudioLink.Core.csproj" />
+    <ProjectReference Include="..\AudioLink.Network\AudioLink.Network.csproj" />
+    <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
+  </ItemGroup>
+</Project>

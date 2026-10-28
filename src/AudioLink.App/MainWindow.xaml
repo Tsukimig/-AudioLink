@@ -1,0 +1,188 @@
+<Window x:Class="AudioLink.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:AudioLink.Controls"
+        Title="同频 AudioLink" Width="1160" Height="820" MinWidth="1000" MinHeight="700" WindowStartupLocation="CenterScreen" Background="#101712" Foreground="{StaticResource Text}" FontFamily="Segoe UI, Microsoft YaHei UI" FontSize="13" UseLayoutRounding="True" SnapsToDevicePixels="True" Closing="Window_Closing" Loaded="Window_Loaded" Tag="{DynamicResource {x:Static SystemParameters.HighContrastKey}}">
+  <Window.InputBindings><KeyBinding Key="Space" Modifiers="Control" Command="{Binding ToggleCommand}"/><KeyBinding Key="F5" Command="{Binding RefreshCommand}"/><KeyBinding Key="Escape" Command="{Binding CancelHistoryCommand}"/></Window.InputBindings>
+  <Window.Resources>
+    <Style x:Key="HistoryCard" TargetType="Border">
+      <Setter Property="Background" Value="{StaticResource Surface}"/><Setter Property="BorderBrush" Value="{StaticResource Stroke}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="8"/>
+      <Style.Triggers><DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=Window}}" Value="True"><Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"/><Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.WindowTextBrushKey}}"/></DataTrigger></Style.Triggers>
+    </Style>
+    <Style x:Key="HistoryCheckBox" TargetType="CheckBox">
+      <Setter Property="Foreground" Value="{StaticResource Text}"/><Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Style.Triggers><Trigger Property="IsEnabled" Value="False"><Setter Property="Foreground" Value="{StaticResource Secondary}"/></Trigger><DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=Window}}" Value="True"><Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.WindowTextBrushKey}}"/></DataTrigger><MultiDataTrigger><MultiDataTrigger.Conditions><Condition Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=Window}}" Value="True"/><Condition Binding="{Binding IsEnabled, RelativeSource={RelativeSource Self}}" Value="False"/></MultiDataTrigger.Conditions><Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/></MultiDataTrigger></Style.Triggers>
+    </Style>
+  </Window.Resources>
+  <ScrollViewer x:Name="WindowScroller" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" SizeChanged="WindowScroller_SizeChanged">
+  <Grid x:Name="RootLayout" Margin="28,21,28,22" MinWidth="920" MinHeight="620">
+    <Grid.RowDefinitions><RowDefinition Height="48"/><RowDefinition Height="20"/><RowDefinition Height="*"/><RowDefinition Height="100"/></Grid.RowDefinitions>
+    <Grid>
+      <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+        <Border Width="39" Height="39" CornerRadius="11" Background="{StaticResource Accent}" Margin="0,0,12,0">
+          <Canvas Width="24" Height="24"><Rectangle Width="4" Height="10" RadiusX="2" RadiusY="2" Fill="#23391C" Canvas.Left="2" Canvas.Top="7"/><Rectangle Width="4" Height="22" RadiusX="2" RadiusY="2" Fill="#23391C" Canvas.Left="10" Canvas.Top="1"/><Rectangle Width="4" Height="16" RadiusX="2" RadiusY="2" Fill="#23391C" Canvas.Left="18" Canvas.Top="4"/></Canvas>
+        </Border>
+        <TextBlock Text="同频" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,-3,10,0"/>
+        <Border Width="1" Height="18" Background="#3D4A3F" Margin="2,0,12,0" VerticalAlignment="Center"/>
+        <TextBlock Text="AudioLink" Foreground="{StaticResource Secondary}" FontSize="14" VerticalAlignment="Center"/>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+        <Button Command="{Binding PhoneCommand}" Content="连接手机" Margin="0,0,9,0"/>
+        <Button Command="{Binding RefreshCommand}" Margin="0,0,9,0" ToolTip="重新扫描已连接的播放设备（F5）"><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE72C;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Margin="0,1,7,0"/><TextBlock Text="刷新设备" Foreground="{StaticResource Secondary}"/></StackPanel></Button>
+        <Button Command="{Binding HelpCommand}" Content="使用说明"/>
+      </StackPanel>
+    </Grid>
+    <Grid Grid.Row="2">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="310"/><ColumnDefinition Width="22"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,3,0">
+      <Grid>
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="16"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <Border Background="{StaticResource Surface}" BorderBrush="{StaticResource Stroke}" BorderThickness="1" CornerRadius="14" Padding="21,19,21,18">
+          <StackPanel>
+            <TextBlock Text="系统音源" FontSize="15" FontWeight="SemiBold"/>
+            <ComboBox ItemsSource="{Binding Sources}" SelectedItem="{Binding SelectedSource}" Height="45" Margin="0,16,0,0" ToolTip="{Binding SelectedSource.Name}" AutomationProperties.Name="系统音源">
+              <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" MaxWidth="480"/></DataTemplate></ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Text="音源设备音量" FontSize="10" Foreground="{StaticResource Secondary}" Margin="0,11,0,2"/>
+            <Grid DataContext="{Binding SourceOutput}" IsEnabled="{Binding UsesDeviceVolume}" Height="30" ToolTip="{Binding SourceVolumeHint}" ToolTipService.ShowOnDisabled="True">
+              <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="43"/><ColumnDefinition Width="58"/></Grid.ColumnDefinitions>
+              <Slider Minimum="0" Maximum="100" Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}" TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center" AutomationProperties.Name="音源设备音量"/>
+              <TextBlock Grid.Column="1" Text="{Binding VolumeText}" FontFamily="Consolas" FontSize="10" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,6,0"/>
+              <Button Grid.Column="2" Content="{Binding MuteText}" Command="{Binding MuteCommand}" FontSize="10" Padding="5,4" VerticalAlignment="Center" ToolTip="静音这个音源设备的实际播放"/>
+            </Grid>
+            <Grid Margin="0,10,0,0">
+              <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+              <CheckBox Content="音源同步" IsChecked="{Binding SourceSyncEnabled}" IsEnabled="{Binding CanSynchronizeSource}" VerticalAlignment="Center" ToolTip="使用虚拟中转，让原音源设备也经程序播放并参与同步。"/>
+              <StackPanel Grid.Column="1" DataContext="{Binding SourceOutput}" IsEnabled="{Binding DataContext.SourceSyncEnabled, RelativeSource={RelativeSource AncestorType=Window}}" Orientation="Horizontal">
+                <TextBlock Text="同步微调" FontSize="10" Foreground="{StaticResource Muted}" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                <TextBox Text="{Binding DelayMs, UpdateSourceTrigger=LostFocus}" Width="43" Height="24" FontFamily="Consolas" FontSize="10" TextAlignment="Center" MaxLength="3" LostFocus="DelayBox_LostFocus" PreviewTextInput="DelayBox_PreviewTextInput" AutomationProperties.Name="音源追加延迟毫秒"/>
+                <TextBlock Text="ms" FontSize="10" Foreground="{StaticResource Muted}" VerticalAlignment="Center" Margin="5,0,0,0"/>
+              </StackPanel>
+            </Grid>
+            <StackPanel Visibility="{Binding SourceSyncEnabled, Converter={StaticResource BoolVisibility}}" Margin="0,10,0,0">
+              <ComboBox ItemsSource="{Binding SyncInputs}" SelectedItem="{Binding SyncInput}" Height="36" ToolTip="中转音源：原始音频先进入此虚拟设备，再送到音源设备和各共享设备。" AutomationProperties.Name="虚拟中转音源">
+                <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" MaxWidth="480"/></DataTemplate></ComboBox.ItemTemplate>
+              </ComboBox>
+              <TextBlock Text="{Binding SyncInputHint}" TextWrapping="Wrap" FontSize="11" Foreground="{StaticResource Secondary}" Margin="0,6,0,0"><TextBlock.Style><Style TargetType="TextBlock"><Style.Triggers><DataTrigger Binding="{Binding SyncInputHint}" Value=""><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock>
+            </StackPanel>
+            <local:SignalHistory x:Name="SignalView" Height="43" Margin="0,8,0,0"/>
+          </StackPanel>
+        </Border>
+        <Border Grid.Row="2" Background="{StaticResource Surface}" BorderBrush="{StaticResource Stroke}" BorderThickness="1" CornerRadius="14" Padding="21,17,21,14">
+          <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <TextBlock Text="播放模式" FontSize="13" FontWeight="SemiBold"/>
+            <UniformGrid Grid.Row="1" Columns="3" Margin="0,13,0,0">
+              <RadioButton GroupName="Profiles" Style="{StaticResource ProfileOption}" Margin="0,0,5,0" IsChecked="{Binding IsLow, Mode=OneWay}" Command="{Binding ProfileCommand}" CommandParameter="{Binding Profiles[0]}"><TextBlock Text="低延迟" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" FontSize="12"/></RadioButton>
+              <RadioButton GroupName="Profiles" Style="{StaticResource ProfileOption}" Margin="0,0,5,0" IsChecked="{Binding IsBalanced, Mode=OneWay}" Command="{Binding ProfileCommand}" CommandParameter="{Binding Profiles[1]}"><TextBlock Text="均衡" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" FontSize="12"/></RadioButton>
+              <RadioButton GroupName="Profiles" Style="{StaticResource ProfileOption}" IsChecked="{Binding IsSafe, Mode=OneWay}" Command="{Binding ProfileCommand}" CommandParameter="{Binding Profiles[2]}"><TextBlock Text="高稳定" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" FontSize="12"/></RadioButton>
+            </UniformGrid>
+          </Grid>
+        </Border>
+      </Grid>
+      </ScrollViewer>
+      <Grid Grid.Column="2">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="68"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <Grid>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+          <TextBlock FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,12"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Text" Value="共享到"/><Style.Triggers><DataTrigger Binding="{Binding IsClearingHistory}" Value="True"><Setter Property="Text" Value="清除历史"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,0,12">
+            <StackPanel.Style><Style TargetType="StackPanel"><Style.Triggers><DataTrigger Binding="{Binding IsClearingHistory}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></StackPanel.Style>
+            <Button x:Name="ClearHistoryButton" Content="清除历史" Style="{StaticResource LinkButton}" Command="{Binding ClearHistoryCommand}" ToolTip="选择已断开的设备，再确认删除历史记录。"/>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,0,12" Visibility="{Binding IsClearingHistory, Converter={StaticResource BoolVisibility}}">
+            <Button Content="{Binding HistorySelectionText}" Style="{StaticResource LinkButton}" Command="{Binding SelectHistoryCommand}" Margin="0,0,8,0"/>
+            <Button Content="确认删除" Command="{Binding ConfirmHistoryCommand}" Padding="12,6" Margin="0,0,8,0" ToolTip="删除勾选设备的历史记录及保存的音量、静音和延迟。"/>
+            <Button x:Name="CancelHistoryButton" Content="取消" Command="{Binding CancelHistoryCommand}" Padding="12,6" ToolTip="取消删除（Esc）"/>
+          </StackPanel>
+        </Grid>
+        <Border Grid.Row="1" Background="#162119" BorderBrush="#293C2D" BorderThickness="1" CornerRadius="10" Padding="17,12" Margin="0,0,0,13">
+          <Border.Style><Style TargetType="Border"><Style.Triggers><DataTrigger Binding="{Binding IsClearingHistory}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></Border.Style>
+          <UniformGrid Columns="3">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><TextBlock Text="{Binding ActiveCount}" FontSize="23" FontFamily="Consolas" Foreground="{StaticResource Accent}"/><TextBlock Text="共享设备" FontSize="10" Foreground="{StaticResource Secondary}" Margin="8,0,0,0" VerticalAlignment="Center"/></StackPanel>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ToolTip="基于捕获时间戳、输出缓冲和驱动报告估算的共享目标延迟；不包含蓝牙编码、无线传输或声学传播延迟。"><TextBlock Text="{Binding LatencyText}" FontSize="23" FontFamily="Consolas"/><TextBlock Text="ms · 目标延迟" FontSize="10" Foreground="{StaticResource Secondary}" Margin="8,0,0,0" VerticalAlignment="Center"/></StackPanel>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ToolTip="捕获不连续、缓冲不足和输出供数超时的累计次数。"><TextBlock Text="{Binding GlitchText}" FontSize="23" FontFamily="Consolas"/><TextBlock Text="中断计数" FontSize="10" Foreground="{StaticResource Secondary}" Margin="8,0,0,0" VerticalAlignment="Center"/></StackPanel>
+          </UniformGrid>
+        </Border>
+        <ListBox Grid.Row="2" ItemsSource="{Binding Outputs}" Background="Transparent" BorderThickness="0" Padding="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" VirtualizingPanel.ScrollUnit="Pixel" HorizontalContentAlignment="Stretch">
+          <ListBox.Style><Style TargetType="ListBox"><Style.Triggers><DataTrigger Binding="{Binding IsClearingHistory}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></ListBox.Style>
+          <ListBox.ItemContainerStyle><Style TargetType="ListBoxItem"><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,0,6,12"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Focusable" Value="False"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem"><ContentPresenter/></ControlTemplate></Setter.Value></Setter></Style></ListBox.ItemContainerStyle>
+          <ListBox.ItemTemplate><DataTemplate>
+            <Border x:Name="DeviceCard" CornerRadius="12" Background="#1A251E" BorderBrush="#304234" BorderThickness="1" Padding="17,15,17,12">
+              <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="32"/><RowDefinition Height="34"/><RowDefinition Height="4"/><RowDefinition Height="37"/></Grid.RowDefinitions>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <Grid>
+                  <Grid.ColumnDefinitions><ColumnDefinition Width="42"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                  <Border Width="31" Height="31" CornerRadius="9" Background="#2A3B2C" HorizontalAlignment="Left" VerticalAlignment="Top"><TextBlock Text="{Binding Icon}" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16" Foreground="#B7D0AE" VerticalAlignment="Center" HorizontalAlignment="Center"/></Border>
+                  <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" FontSize="13" FontWeight="SemiBold" ToolTip="{Binding Name}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                  <CheckBox Grid.Column="2" Style="{StaticResource RouteSwitch}" IsChecked="{Binding Selected}" VerticalAlignment="Center" ToolTip="启用或停用这个共享设备" AutomationProperties.Name="{Binding Name}"/>
+                </Grid>
+                <Grid Grid.Row="1" Margin="0,4,0,2">
+                  <Grid.ColumnDefinitions><ColumnDefinition Width="22"/><ColumnDefinition Width="*"/><ColumnDefinition Width="43"/><ColumnDefinition Width="64"/></Grid.ColumnDefinitions>
+                  <TextBlock Text="&#xE767;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Foreground="{StaticResource Muted}" VerticalAlignment="Center" FontSize="12"/>
+                  <Slider Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}" SmallChange="1" LargeChange="5" IsSnapToTickEnabled="True" TickFrequency="1" VerticalAlignment="Center" ToolTip="{Binding VolumeHint}" AutomationProperties.Name="{Binding Name, StringFormat='{}{0} 音量'}"/>
+                  <TextBlock Grid.Column="2" Text="{Binding VolumeText}" Foreground="#CEE0C7" FontSize="11" FontFamily="Consolas" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,4,0"/>
+                  <Button Grid.Column="3" Content="{Binding MuteText}" Command="{Binding MuteCommand}" FontSize="10" Padding="7,4" Margin="7,0,0,0" VerticalAlignment="Center" ToolTip="静音这个设备的实际播放"/>
+                </Grid>
+                <ProgressBar Grid.Row="2" Value="{Binding Level, Mode=OneWay}" Maximum="100" Height="2" VerticalAlignment="Center"/>
+                <Grid Grid.Row="3" Margin="0,8,0,0">
+                  <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                  <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse x:Name="StateDot" Width="5" Height="5" Fill="#73867A" Margin="0,0,6,0"/>
+                    <TextBlock x:Name="StateText" Text="{Binding State}" Foreground="{StaticResource Secondary}" FontSize="10" ToolTip="{Binding BufferText}"/>
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" ToolTip="为较快的设备追加 0–500 ms 延迟，以对齐较慢的设备。无法让慢设备提前发声。">
+                    <TextBlock Text="同步微调" FontSize="10" Foreground="{StaticResource Muted}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBox Text="{Binding DelayMs, UpdateSourceTrigger=LostFocus}" Width="43" Height="24" FontSize="10" FontFamily="Consolas" TextAlignment="Center" MaxLength="3" LostFocus="DelayBox_LostFocus" PreviewTextInput="DelayBox_PreviewTextInput" AutomationProperties.Name="追加延迟毫秒"/>
+                    <TextBlock Text="ms" FontSize="10" Foreground="{StaticResource Muted}" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                  </StackPanel>
+                </Grid>
+              </Grid>
+            </Border>
+            <DataTemplate.Triggers>
+              <DataTrigger Binding="{Binding Selected}" Value="True"><Setter TargetName="DeviceCard" Property="BorderBrush" Value="#547348"/></DataTrigger>
+              <DataTrigger Binding="{Binding Available}" Value="False"><Setter TargetName="DeviceCard" Property="Opacity" Value="0.55"/></DataTrigger>
+              <DataTrigger Binding="{Binding Connected}" Value="True"><Setter TargetName="StateDot" Property="Fill" Value="{StaticResource Accent}"/><Setter TargetName="StateText" Property="Foreground" Value="{StaticResource Accent}"/></DataTrigger>
+              <DataTrigger Binding="{Binding HasError}" Value="True"><Setter TargetName="StateDot" Property="Fill" Value="#E4AB7A"/><Setter TargetName="StateText" Property="Foreground" Value="#E4AB7A"/></DataTrigger>
+            </DataTemplate.Triggers>
+          </DataTemplate></ListBox.ItemTemplate>
+        </ListBox>
+        <Border Grid.Row="2" BorderBrush="#354736" BorderThickness="1" CornerRadius="12" Background="#17221A" Padding="32" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+          <Border.Style><Style TargetType="Border"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding HasOutputs}" Value="False"><Setter Property="Visibility" Value="Visible"/></DataTrigger><DataTrigger Binding="{Binding IsClearingHistory}" Value="True"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></Border.Style>
+          <StackPanel VerticalAlignment="Center"><TextBlock Text="暂无共享设备" FontSize="17" HorizontalAlignment="Center"/><Button Content="刷新设备" Command="{Binding RefreshCommand}" HorizontalAlignment="Center" Margin="0,20,0,0"/></StackPanel>
+        </Border>
+        <Grid Grid.Row="1" Grid.RowSpan="2" Visibility="{Binding IsClearingHistory, Converter={StaticResource BoolVisibility}}">
+          <ListBox ItemsSource="{Binding HistoryDevices}" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" AutomationProperties.Name="历史设备">
+            <ListBox.ItemContainerStyle><Style TargetType="ListBoxItem"><Setter Property="Focusable" Value="False"/><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,0,6,10"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem"><ContentPresenter/></ControlTemplate></Setter.Value></Setter></Style></ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate><DataTemplate>
+              <Border Style="{StaticResource HistoryCard}" Padding="15,13">
+                <CheckBox Style="{StaticResource HistoryCheckBox}" IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanDelete}" HorizontalContentAlignment="Stretch" ToolTipService.ShowOnDisabled="True" ToolTip="{Binding Status}" AutomationProperties.Name="{Binding Name, StringFormat='选择删除历史设备：{0}'}">
+                  <StackPanel Margin="9,0,0,0"><TextBlock Text="{Binding Name}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=CheckBox}}" FontSize="13" TextWrapping="Wrap"/><TextBlock Text="{Binding Status}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=CheckBox}}" FontSize="11" Opacity="0.75" Margin="0,5,0,0"/></StackPanel>
+                </CheckBox>
+              </Border>
+            </DataTemplate></ListBox.ItemTemplate>
+          </ListBox>
+          <TextBlock Text="暂无历史设备" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding HasHistoryDevices}" Value="False"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock>
+        </Grid>
+        <TextBlock Grid.Row="3" Text="{Binding HistoryMessage}" TextWrapping="Wrap" FontSize="12" Margin="0,8,0,0" AutomationProperties.LiveSetting="Polite"><TextBlock.Style><Style TargetType="TextBlock"><Style.Triggers><DataTrigger Binding="{Binding HistoryMessage}" Value=""><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></TextBlock.Style></TextBlock>
+      </Grid>
+    </Grid>
+    <Border Grid.Row="3" Background="#1B291E" BorderBrush="#3B5039" BorderThickness="1" CornerRadius="13" Padding="19,14" Margin="0,18,0,0">
+      <Grid>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="195"/><ColumnDefinition Width="30"/><ColumnDefinition Width="156"/></Grid.ColumnDefinitions>
+        <StackPanel VerticalAlignment="Center" Margin="0,0,18,0">
+          <StackPanel Orientation="Horizontal"><Ellipse Width="6" Height="6" Margin="0,0,8,0"><Ellipse.Style><Style TargetType="Ellipse"><Setter Property="Fill" Value="#83917D"/><Style.Triggers><DataTrigger Binding="{Binding Running}" Value="True"><Setter Property="Fill" Value="{StaticResource Accent}"/></DataTrigger></Style.Triggers></Style></Ellipse.Style></Ellipse><TextBlock Text="{Binding Status}" FontSize="13" FontWeight="SemiBold"/><TextBlock Text="{Binding ElapsedText}" Foreground="{StaticResource Muted}" FontSize="11" FontFamily="Consolas" Margin="12,2,0,0" Visibility="{Binding Requested, Converter={StaticResource BoolVisibility}}"/></StackPanel>
+          <TextBlock Text="{Binding Detail}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Detail}" Foreground="{StaticResource Secondary}" FontSize="10" Margin="14,7,0,0">
+            <TextBlock.Style><Style TargetType="TextBlock"><Style.Triggers><DataTrigger Binding="{Binding Detail}" Value=""><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+          </TextBlock>
+        </StackPanel>
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" ToolTip="只调整 AudioLink 共享的声音。各设备的 Windows 音量可通过对应设备滑块调整。">
+          <Grid Margin="0,0,0,4"><TextBlock Text="共享总音量" Foreground="{StaticResource Secondary}" FontSize="10"/><TextBlock Text="{Binding MasterVolumeText}" Foreground="#C9D9C2" FontFamily="Consolas" FontSize="10" HorizontalAlignment="Right"/></Grid>
+          <Slider Value="{Binding MasterVolume}" Minimum="0" Maximum="100" IsSnapToTickEnabled="True" TickFrequency="1" AutomationProperties.Name="共享总音量"/>
+        </StackPanel>
+        <Button Grid.Column="3" Command="{Binding ToggleCommand}" Height="44" Padding="13,8" ToolTip="开始或停止共享（Ctrl + Space）">
+          <Button.Style><Style TargetType="Button" BasedOn="{StaticResource QuietButton}"><Setter Property="Background" Value="{StaticResource Accent}"/><Setter Property="Foreground" Value="#20351B"/><Setter Property="BorderBrush" Value="{StaticResource Accent}"/><Style.Triggers><DataTrigger Binding="{Binding Requested}" Value="True"><Setter Property="Background" Value="#2B4228"/><Setter Property="Foreground" Value="{StaticResource Accent}"/><Setter Property="BorderBrush" Value="#769764"/></DataTrigger></Style.Triggers></Style></Button.Style>
+          <StackPanel Orientation="Horizontal"><TextBlock Text="{Binding ButtonIcon}" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" VerticalAlignment="Center" Margin="0,0,9,0" FontSize="13"/><TextBlock Text="{Binding ButtonText}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontWeight="SemiBold" FontSize="13"/></StackPanel>
+        </Button>
+      </Grid>
+    </Border>
+  </Grid>
+  </ScrollViewer>
+</Window>

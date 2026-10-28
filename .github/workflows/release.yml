@@ -1,0 +1,100 @@
+name: Build and publish release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+    paths:
+      - Directory.Build.props
+      - .github/workflows/release.yml
+      - docs/releases/**
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: audiolink-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 8.0.426
+
+      - name: Prepare version and signed Android receiver
+        id: version
+        run: |
+          $ErrorActionPreference = 'Stop'
+          [xml]$props = Get-Content -LiteralPath Directory.Build.props -Raw
+          $version = [string]$props.Project.PropertyGroup.Version
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Invalid Windows version.' }
+          $tag = 'v' + $version
+          if ($env:GITHUB_REF.StartsWith('refs/tags/') -and $env:GITHUB_REF -ne ('refs/tags/' + $tag)) { throw 'Tag does not match the source version.' }
+          $android = Get-Content -LiteralPath distribution/android/manifest.json -Raw | ConvertFrom-Json
+          $apk = Join-Path 'distribution/android' $android.file
+          if ((Get-FileHash -LiteralPath $apk -Algorithm SHA256).Hash -ne $android.sha256) { throw 'Android receiver checksum mismatch.' }
+          if (!(Test-Path -LiteralPath ('docs/releases/' + $tag + '.md'))) { throw 'Release notes are missing.' }
+          New-Item -ItemType Directory -Path artifacts -Force | Out-Null
+          Copy-Item -LiteralPath $apk -Destination artifacts/AudioLink-Android.apk
+          'windows=' + $version >> $env:GITHUB_OUTPUT
+          'android=' + $android.version >> $env:GITHUB_OUTPUT
+          'tag=' + $tag >> $env:GITHUB_OUTPUT
+
+      - name: Build Windows portable application
+        run: ./Build.ps1 -Portable -SkipTests
+
+      - name: Prepare release downloads
+        env:
+          WINDOWS_VERSION: ${{ steps.version.outputs.windows }}
+          ANDROID_VERSION: ${{ steps.version.outputs.android }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $actual = [Diagnostics.FileVersionInfo]::GetVersionInfo((Join-Path $PWD 'artifacts/AudioLink/AudioLink.dll')).ProductVersion
+          if ($actual -ne $env:WINDOWS_VERSION) { throw 'Published application version mismatch.' }
+          $releaseDir = New-Item -ItemType Directory -Path artifacts/release -Force
+          $zipName = 'AudioLink-Windows-x64-' + $env:WINDOWS_VERSION + '.zip'
+          $apkName = 'AudioLink-Android-' + $env:ANDROID_VERSION + '.apk'
+          Copy-Item -LiteralPath artifacts/AudioLink-Windows-x64.zip -Destination (Join-Path $releaseDir $zipName)
+          Copy-Item -LiteralPath artifacts/AudioLink-Android.apk -Destination (Join-Path $releaseDir $apkName)
+          $manifest = [ordered]@{ source_commit = $env:GITHUB_SHA; windows_version = $env:WINDOWS_VERSION; android_version = $env:ANDROID_VERSION }
+          $manifest | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $releaseDir 'release-manifest.json') -Encoding utf8NoBOM
+          $sums = Get-ChildItem -LiteralPath $releaseDir -File | Sort-Object Name | ForEach-Object { (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $_.Name }
+          $sums | Set-Content -LiteralPath (Join-Path $releaseDir 'SHA256SUMS.txt') -Encoding utf8NoBOM
+
+      - name: Publish matching GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          WINDOWS_VERSION: ${{ steps.version.outputs.windows }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $notes = 'docs/releases/' + $env:RELEASE_TAG + '.md'
+          $existing = & gh release view $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --json isDraft,targetCommitish 2>$null
+          $exists = $LASTEXITCODE -eq 0
+          if ($exists) {
+            $release = $existing | ConvertFrom-Json
+            if (!$release.isDraft) { Write-Output ('Already published: ' + $env:RELEASE_TAG); exit 0 }
+            if ($release.targetCommitish -ne $env:GITHUB_SHA) { throw 'Draft release belongs to a different commit.' }
+          } else {
+            & gh release create $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title ('同频 AudioLink ' + $env:WINDOWS_VERSION) --notes-file $notes --draft
+            if ($LASTEXITCODE -ne 0) { throw 'Could not create the release draft.' }
+          }
+          $assets = @(Get-ChildItem -LiteralPath artifacts/release -File | ForEach-Object FullName)
+          & gh release upload $env:RELEASE_TAG @assets --repo $env:GITHUB_REPOSITORY --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'Release upload failed; the release remains a draft.' }
+          & gh release edit $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --draft=false --latest
+          if ($LASTEXITCODE -ne 0) { throw 'Could not publish the release.' }

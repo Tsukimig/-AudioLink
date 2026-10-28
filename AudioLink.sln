@@ -1,0 +1,41 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioLink.Core", "src\AudioLink.Core\AudioLink.Core.csproj", "{7E79E137-0803-4AF7-A3A3-E266A9DA5E01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioLink.App", "src\AudioLink.App\AudioLink.App.csproj", "{7E79E137-0803-4AF7-A3A3-E266A9DA5E02}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioLink.Tests", "tests\AudioLink.Tests\AudioLink.Tests.csproj", "{7E79E137-0803-4AF7-A3A3-E266A9DA5E03}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{CBDF9C30-48A9-455A-B208-B69E32796BB6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioLink.Network", "src\AudioLink.Network\AudioLink.Network.csproj", "{AB85893E-4979-45A7-B5C4-0A65C63EB1D6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7E79E137-0803-4AF7-A3A3-E266A9DA5E01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E79E137-0803-4AF7-A3A3-E266A9DA5E01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E79E137-0803-4AF7-A3A3-E266A9DA5E01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E79E137-0803-4AF7-A3A3-E266A9DA5E01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E79E137-0803-4AF7-A3A3-E266A9DA5E02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E79E137-0803-4AF7-A3A3-E266A9DA5E02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E79E137-0803-4AF7-A3A3-E266A9DA5E02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E79E137-0803-4AF7-A3A3-E266A9DA5E02}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E79E137-0803-4AF7-A3A3-E266A9DA5E03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E79E137-0803-4AF7-A3A3-E266A9DA5E03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E79E137-0803-4AF7-A3A3-E266A9DA5E03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E79E137-0803-4AF7-A3A3-E266A9DA5E03}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB85893E-4979-45A7-B5C4-0A65C63EB1D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB85893E-4979-45A7-B5C4-0A65C63EB1D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB85893E-4979-45A7-B5C4-0A65C63EB1D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB85893E-4979-45A7-B5C4-0A65C63EB1D6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AB85893E-4979-45A7-B5C4-0A65C63EB1D6} = {CBDF9C30-48A9-455A-B208-B69E32796BB6}
+	EndGlobalSection
+EndGlobal

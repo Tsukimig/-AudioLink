@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework></PropertyGroup>
+  <ItemGroup><ProjectReference Include="..\..\src\AudioLink.Core\AudioLink.Core.csproj"/></ItemGroup>
+  <ItemGroup><ProjectReference Include="..\..\src\AudioLink.Network\AudioLink.Network.csproj"/></ItemGroup>
+</Project>

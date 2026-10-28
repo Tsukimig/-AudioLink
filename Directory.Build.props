@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Version>1.4.3</Version>
+    <Authors>AudioLink</Authors>
+    <Copyright>Copyright © 2026 AudioLink contributors</Copyright>
+  </PropertyGroup>
+</Project>
